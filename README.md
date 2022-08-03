@@ -18,15 +18,6 @@
 
 Suppose we have a flight (ID = 123) containing an ad (ID = 456).
 
-Configure some variables to use in this example:
-
-```bash
-networkid=999
-flightid=123
-adid=456
-apikey=3E953C2DC8784AC08279CB946B95666D
-```
-
 ### Configure Targeting (Ad/Flight Creation)
 
 Create the location targeting ContentDB JSON payload:
