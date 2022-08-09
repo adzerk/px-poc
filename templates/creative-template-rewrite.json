@@ -1,0 +1,104 @@
+{
+  "ctKevel": {
+    "version": "69f4edb6b8bf4bc48bd785cf39c2963e",
+    "load": [
+      {
+        "ctAdUnitTargeting": "contentdb:AdUnitTargeting::${Ad.id()}",
+        "ctLocationTargeting": "contentdb:LocationTargeting::${Ad.flightId()}"
+      }
+    ],
+    "transform": {
+      "cache": [
+        {
+          "$let": {
+            "a": {
+              "$eval": "ctAdUnitTargeting['adunits']"
+            },
+            "d": {
+              "$eval": "ctLocationTargeting['dmas']"
+            },
+            "z": {
+              "$eval": "ctLocationTargeting['zipcodes']"
+            }
+          },
+          "in": [
+            {
+              "$let": {
+                "dmas": {
+                  "$if": "d",
+                  "else": [],
+                  "then": {
+                    "$map": {
+                      "$eval": "split(d, ',')"
+                    },
+                    "each(x)": [
+                      "dma=${x}"
+                    ]
+                  }
+                },
+                "simplekws": {
+                  "$if": "a",
+                  "else": [],
+                  "then": {
+                    "$map": {
+                      "$eval": "split(a, ',')"
+                    },
+                    "each(x)": "adunit=${x}"
+                  }
+                },
+                "zipcodes": {
+                  "$if": "z",
+                  "else": [],
+                  "then": {
+                    "$map": {
+                      "$eval": "split(z, ',')"
+                    },
+                    "each(x)": [
+                      "zipcode=${x}"
+                    ]
+                  }
+                }
+              },
+              "in": [
+                {
+                  "$let": {
+                    "kws": {
+                      "$flatten": [
+                        {
+                          "$eval": "dmas"
+                        },
+                        {
+                          "$eval": "zipcodes"
+                        }
+                      ]
+                    }
+                  },
+                  "in": [
+                    {
+                      "$if": "len(simplekws)",
+                      "then": {
+                        "$eval": "Ad.simpleKeywords(simplekws)"
+                      }
+                    },
+                    {
+                      "$if": "len(kws)",
+                      "then": {
+                        "$eval": "Ad.keywords({include: kws, exclude: []})"
+                      }
+                    },
+                    {
+                      "$eval": "define('ctAdUnitTargeting', null)"
+                    },
+                    {
+                      "$eval": "define('ctLocationTargeting', null)"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
