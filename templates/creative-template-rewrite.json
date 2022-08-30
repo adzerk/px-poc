@@ -15,10 +15,13 @@
               "$eval": "ctAdUnitTargeting['adunits']"
             },
             "d": {
-              "$eval": "ctLocationTargeting['dmas']"
+              "$eval": "ctLocationTargeting['dma_code']"
             },
             "z": {
-              "$eval": "ctLocationTargeting['zipcodes']"
+              "$eval": "ctLocationTargeting['zip']"
+            },
+            "r": {
+              "$eval": "ctLocationTargeting['region']"
             }
           },
           "in": [
@@ -57,6 +60,18 @@
                       "zipcode=${x}"
                     ]
                   }
+                },
+                "regions": {
+                  "$if": "r",
+                  "else": [],
+                  "then": {
+                    "$map": {
+                      "$eval": "split(r, ',')"
+                    },
+                    "each(x)": [
+                      "region=${x}"
+                    ]
+                  }
                 }
               },
               "in": [
@@ -69,6 +84,9 @@
                         },
                         {
                           "$eval": "zipcodes"
+                        },
+                        {
+                          "$eval": "regions"
                         }
                       ]
                     }

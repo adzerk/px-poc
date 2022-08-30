@@ -1,6 +1,7 @@
 ```bash
 # Run the demo:
-python3 px-demo.py
+export ADZERK_API_KEY=${your_kevel_network_api_key}
+python3 px-demo.py ${network_id} ${creative_template_id}
 ```
 ```bash
 # Associate a creative template with the rewrite macros:

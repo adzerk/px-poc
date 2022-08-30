@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import datetime, json, os, requests
+import datetime, json, os, requests, sys
 
 
 """
@@ -13,13 +13,20 @@ and some sample decision API request payloads you can use for testing.
 
 
 ###############################################################################
-# REQUIRED CONFIGURATION: YOU MUST EDIT THE FOLLOWING VALUES
+# REQUIRED CONFIGURATION: YOU MUST SET THE FOLLOWING ENVIRONMENT VARIABLES
 ###############################################################################
 
 
-API_KEY             = None  # Your Kevel API key.
-NETWORK             = None  # Your Kevel Network ID.
-CREATIVE_TEMPLATE   = None  # The ID of your creative template.
+def getenv(var):
+    val = os.getenv(var)
+    if val is None:
+        raise RuntimeError(f'environment variable not set: {var}')
+    return val
+
+
+API_KEY             = getenv('ADZERK_API_KEY')  # Your API key.
+NETWORK             = None
+CREATIVE_TEMPLATE   = None
 
 
 ###############################################################################
@@ -31,6 +38,7 @@ NAME        = f'kevel px-demo {datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:
 AD_TYPE     = 5
 DMAS        = '500,501,502,503'
 ZIPCODES    = '10465,10123,33139,27587'
+REGIONS     = 'CA,NY'
 ADUNITS     = 'c82dddf72ac045a6895b9f0491d1d25b,3d957e5c107948b99fb4e037273638ad,06f76f88fa4a42afb25c8b246282bc27,c57785b914cf40ad96758115e1e127e6,290f1ad47dab4416806b915afe0c10ec,1e7b5310b80d471e979f2b94ae7f6486'
 
 
@@ -163,7 +171,11 @@ def main():
     ad = create_ad(creative, flight)
 
     # create keyword targeting for flight 1
-    upsert_contentdb('LocationTargeting', flight, {'dmas': DMAS, 'zipcodes': ZIPCODES})
+    upsert_contentdb('LocationTargeting', flight, {
+        'dma_code': DMAS,
+        'zip': ZIPCODES,
+        'region': REGIONS
+        })
 
     # create keyword targeting for ad 1 in flight 1
     upsert_contentdb('AdUnitTargeting', ad, {'adunits': ADUNITS})
@@ -194,18 +206,35 @@ def main():
         'keywords': [adunit_keyword, f'zipcode={first_comma(ZIPCODES)}'],
     }
 
+    decision_api_region = {
+        'placements': [placement],
+        'keywords': [adunit_keyword, f'region={first_comma(REGIONS)}'],
+    }
+
     ###########################################################################
     # RESULT
     ###########################################################################
 
     return {
         'campaign_name': NAME,
-        'sample_decision_api_requests': [decision_api_dma, decision_api_zipcode],
+        'sample_decision_api_requests': [
+            decision_api_dma,
+            decision_api_zipcode,
+            decision_api_region
+            ]
     }
 
 
+def usage(exit_status):
+    print(f'USAGE: {os.path.basename(__file__)} <network-id> <creative-template-id>')
+    exit(exit_status)
+
+
 if __name__ == '__main__':
-    assert API_KEY is not None, 'API_KEY not configured (see comment in this file)'
-    assert NETWORK is not None, 'NETWORK not configured (see comment in this file)'
-    assert CREATIVE_TEMPLATE is not None, 'CREATIVE_TEMPLATE not configured (see comment in this file)'
+    if len(sys.argv) < 3:
+        usage(1)
+
+    NETWORK = sys.argv[1]
+    CREATIVE_TEMPLATE = sys.argv[2]
+
     print(json.dumps(main(), indent=4))
