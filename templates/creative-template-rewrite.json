@@ -57,7 +57,7 @@
                       "$eval": "split(z, ',')"
                     },
                     "each(x)": [
-                      "zipcode=${x}"
+                      "zip=${x}"
                     ]
                   }
                 },
